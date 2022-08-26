@@ -1,0 +1,22 @@
+# Default values for aws-canary-config.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+detail:
+  replicaCount: 2
+  namespace: apps
+  name: backend-service
+
+  serviceAccount: backend-service
+
+  image:
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    targetPort: 3000
+
+canaryConfig:
+  - name: "backend-v1"
+    tag: "v1.0.0"
+    weight: 100

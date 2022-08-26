@@ -1,0 +1,33 @@
+{{- $targetPort := .Values.detail.service.targetPort -}}
+{{- $namespace := .Values.detail.namespace -}}
+{{- range .Values.canaryConfig }}
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: {{ .name }}
+  namespace: apps
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+      version: {{ .name }}
+  listeners:
+    - portMapping:
+        port: {{ $targetPort }}
+        protocol: http
+      # healthCheck:
+      #   protocol: http
+      #   path: '/ping'
+      #   healthyThreshold: 2
+      #   unhealthyThreshold: 2
+      #   timeoutMillis: 2000
+      #   intervalMillis: 5000
+  serviceDiscovery:
+    dns:
+      hostname: {{ .name }}.{{ $namespace }}.svc.cluster.local
+  logging:
+    accessLog:
+      file:
+        path: /dev/stdout
+{{- end }}

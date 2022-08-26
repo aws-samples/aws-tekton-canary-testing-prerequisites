@@ -1,0 +1,18 @@
+{{- $targetPort := .Values.detail.service.targetPort -}}
+{{- $namespace := .Values.detail.namespace -}}
+{{- range .Values.canaryConfig }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  namespace: {{ $namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+    version: {{ .name }}
+  ports:
+    - protocol: TCP
+      port: {{ $targetPort }}
+{{- end }}

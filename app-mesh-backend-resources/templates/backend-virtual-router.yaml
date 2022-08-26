@@ -1,0 +1,23 @@
+{{- $targetPort := .Values.detail.service.targetPort -}}
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  name: {{ .Values.detail.name }}-router
+  namespace: {{ .Values.detail.namespace }}
+spec:
+  listeners:
+    - portMapping:
+        port: {{ $targetPort }}
+        protocol: http
+  routes:
+    - name: default-route
+      httpRoute:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+          {{- range .Values.canaryConfig }}
+            - virtualNodeRef:
+                name: {{ .name }}
+              weight: {{ .weight }}
+          {{- end}}

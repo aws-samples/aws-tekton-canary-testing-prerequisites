@@ -1,0 +1,13 @@
+{
+    "name": "web",
+    "active": true,
+    "events": [
+        "push"
+    ],
+    "config": {
+        "url": "http://ENDPOINT:8080",
+        "content_type": "json",
+        "secret": "SECRET",
+        "insecure_ssl": 1
+    }
+}

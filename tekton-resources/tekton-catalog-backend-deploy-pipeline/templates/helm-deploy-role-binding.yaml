@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: helm-deploy
+  namespace: apps
+subjects:
+  - kind: ServiceAccount
+    name: app-deploy
+    namespace: apps-build
+roleRef:
+  kind: Role
+  name: helm-deploy
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,39 @@
+{{- $targetPort := .Values.detail.service.targetPort -}}
+{{- $pullPolicy := .Values.detail.image.pullPolicy -}}
+{{- $serviceAccount := .Values.detail.serviceAccount -}}
+{{- $image := .Values.detail.image.repository -}}
+{{- $namespace := .Values.detail.namespace -}}
+{{- $replicaCount := .Values.detail.replicaCount -}}
+{{- range .Values.canaryConfig }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ .name }}
+  namespace: {{ $namespace }}
+spec:
+  replicas: {{ $replicaCount }}
+  selector:
+    matchLabels:
+      app: backend
+      version: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: {{ .name }}
+    spec:
+      serviceAccountName: {{ $serviceAccount }}
+      containers:
+        - name: {{ .name }}
+          image: "{{ $image }}:{{ .tag }}"
+          imagePullPolicy: {{ $pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: {{ $targetPort }}
+{{- end }}

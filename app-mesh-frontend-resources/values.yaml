@@ -1,0 +1,49 @@
+# Default values for helm-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+frontend:
+  replicaCount: 1
+  namespace: apps
+  name: frontend
+
+  serviceaccount: frontend-service
+
+  image:
+    pullPolicy: Always
+    tag: latest
+
+  nameOverride: ""
+  fullnameOverride: ""
+
+  service:
+    type: LoadBalancer
+    targetPort: 9000
+    port: 9000
+    name: "http"
+
+  selector:
+    app: frontend
+
+  env:
+    - name: BASE_URL
+      value: "http://backend-service.apps.svc.cluster.local:3000/catalogDetail/"
+    
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+appmesh:
+  virtualgateway:
+    name: ingress-gw
+    port: 80
+    targetport: 8088
+    serviceaccount: proddetail-envoy-proxies

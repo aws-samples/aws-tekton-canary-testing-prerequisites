@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: app-deploy
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: deploy-store
+  params:
+    - name: revision
+      type: string
+      description: "Git revision"
+    - name: repositoryurl
+      type: string
+      description: "Name of the Repository"
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: source
+          workspace: deploy-store
+      params:
+        - name: repositoryurl
+          value: $(params.repositoryurl)
+        - name: revision
+          value: $(params.revision)
+    - name: helm-deploy
+      taskRef:
+        name: helm-deploy
+      runAfter: ["git-clone"]
+      params:
+        - name: commitshashort
+          value: "$(tasks.git-clone.results.built-image-tag)"
+      workspaces:
+        - name: source
+          workspace: deploy-store

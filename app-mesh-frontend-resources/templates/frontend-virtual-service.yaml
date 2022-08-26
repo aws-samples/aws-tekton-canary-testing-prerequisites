@@ -1,0 +1,11 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: {{ .Values.frontend.name }}
+  namespace: {{ .Values.frontend.namespace }}
+spec:
+  awsName: {{ .Values.frontend.name }}.apps.svc.cluster.local
+  provider:
+    virtualNode:
+      virtualNodeRef:
+        name: {{ .Values.frontend.name }}

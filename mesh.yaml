@@ -1,0 +1,8 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: Mesh
+metadata:
+  name: tekton-canary-mesh
+spec:
+  namespaceSelector:
+    matchLabels:
+      mesh: tekton-canary-mesh

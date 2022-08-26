@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: docker-build
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: commitshashort
+      type: string
+      description: Short Version of the commit SHA from the last commit
+  steps:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker/
+      args:
+        - --dockerfile=$(workspaces.source.path)/Dockerfile
+        - --destination={{ .Values.aws.accountID }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/{{ .Values.app.name }}:$(params.commitshashort)
+        - --context=$(workspaces.source.path)
+  volumes:
+    - name: docker-config
+      configMap:
+        name: docker-config

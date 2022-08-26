@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: node-build
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: artifact-store
+  params:
+    - name: revision
+      type: string
+      description: "Git revision"
+    - name: repositoryurl
+      type: string
+      description: "Name of the Repository"
+    - name: tag
+      type: string
+      description: "Git tag (if present)"
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: source
+          workspace: artifact-store
+      params:
+        - name: repositoryurl
+          value: $(params.repositoryurl)
+        - name: revision
+          value: $(params.revision)
+        - name: tag
+          value: $(params.tag)
+    - name: docker-build
+      taskRef:
+        name: docker-build
+      runAfter: ["git-clone"]
+      params:
+        - name: commitshashort
+          value: "$(tasks.git-clone.results.built-image-tag)"
+      workspaces:
+        - name: source
+          workspace: artifact-store

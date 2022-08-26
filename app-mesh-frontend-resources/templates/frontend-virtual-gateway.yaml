@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: appmesh.k8s.aws/v1beta2
+  kind: VirtualGateway
+  metadata:
+    name: {{ .Values.appmesh.virtualgateway.name }}
+    namespace: {{ .Values.frontend.namespace }}
+  spec:
+    namespaceSelector:
+      matchLabels:
+        gateway: {{ .Values.appmesh.virtualgateway.name }}
+    podSelector:
+      matchLabels:
+        app: {{ .Values.appmesh.virtualgateway.name }}
+    listeners:
+      - portMapping:
+          port: {{ .Values.appmesh.virtualgateway.targetport }}
+          protocol: http
+- apiVersion: appmesh.k8s.aws/v1beta2
+  kind: GatewayRoute
+  metadata:
+    name: gateway-route-{{ .Values.frontend.name }}
+    namespace: {{ .Values.frontend.namespace }}
+  spec:
+    httpRoute:
+      match:
+        prefix: "/"
+      action:
+        target:
+          virtualService:
+            virtualServiceRef:
+              name: {{ .Values.frontend.name }}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: {{ .Values.appmesh.virtualgateway.name }}
+    namespace: {{ .Values.frontend.namespace }}
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+  spec:
+    type: LoadBalancer
+    ports:
+      - port: {{ .Values.appmesh.virtualgateway.port }}
+        targetPort: {{ .Values.appmesh.virtualgateway.targetport }}
+        name: http
+    selector:
+      app: {{ .Values.appmesh.virtualgateway.name }}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: {{ .Values.appmesh.virtualgateway.name }}
+    namespace: {{ .Values.frontend.namespace }}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: {{ .Values.appmesh.virtualgateway.name }}
+    template:
+      metadata:
+        labels:
+          app: {{ .Values.appmesh.virtualgateway.name }}
+      spec:
+        serviceAccountName: {{ .Values.appmesh.virtualgateway.serviceaccount }}
+        containers:
+          - name: envoy
+            image: ${ENVOY_IMAGE}
+            ports:
+              - containerPort: {{ .Values.appmesh.virtualgateway.targetport }}
+            env:
+              - name: "ENVOY_LOG_LEVEL"
+                value: "debug"

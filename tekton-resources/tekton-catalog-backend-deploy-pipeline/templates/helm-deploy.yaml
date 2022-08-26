@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: helm-deploy
+  namespace: apps-build
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: release_namespace
+      type: string
+      description: apps
+      default: apps
+    - name: helm_app_name
+      type: string
+      description: catalog-backend
+      default: backend-deployment
+    - name: release_image
+      type: string
+      description: release image
+      default: "{{ .Values.aws.accountId }}.dkr.ecr.{{ .Values.aws.region }}.amazonaws.com/catalog-backend"
+    - name: commitshashort
+      type: string
+      description: Short Version of the commit SHA from the last commit
+  steps:
+    - name: helm-deploy
+      image: lachlanevenson/k8s-helm:latest
+      workingDir: $(workspaces.source.path)
+      script: |
+        echo List current installed helm releases
+        helm list --namespace "$(params.release_namespace)"
+        echo Deploy new application release "$(params.commitshashort)"
+        helm status --namespace "$(params.release_namespace)" "$(params.helm_app_name)"
+        echo Release new version
+        helm upgrade -i --wait --namespace "$(params.release_namespace)" -f values.yaml "$(params.helm_app_name)" ./ --set detail.image.repository="$(params.release_image)" 

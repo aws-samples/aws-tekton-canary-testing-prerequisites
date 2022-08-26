@@ -1,0 +1,15 @@
+{{- $targetPort := .Values.detail.service.targetPort -}}
+{{- $namespace := .Values.detail.namespace -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: {{ $namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: {{ $targetPort }}
