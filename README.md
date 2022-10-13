@@ -1,6 +1,6 @@
 # tekton-aws-prerequisites
 
-This repository contains the resources for the demo discusse in the blog [TODO: UPDATE LINK]().
+This repository contains the resources for the demo discussed in the blog [https://aws.amazon.com/blogs/opensource/canary-testing-with-aws-app-mesh-and-tekton/](Canary Testing with AWS App Mesh and Tekton).
 
 The code provided is for demo purposes only and not ready for production.
 
