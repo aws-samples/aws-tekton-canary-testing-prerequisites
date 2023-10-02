@@ -91,14 +91,14 @@ helm upgrade -i appmesh-controller eks/appmesh-controller \
     --set serviceAccount.name=appmesh-controller > /dev/null
 
 echo "bootstrap iam policies for app mesh services"
-sed -i '' -e "s/AWS_REGION/${AWS_REGION}/g" policies/frontend-service-proxy-auth.json
-sed -i '' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/frontend-service-proxy-auth.json
+sed -i'' -e "s/AWS_REGION/${AWS_REGION}/g" policies/frontend-service-proxy-auth.json
+sed -i'' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/frontend-service-proxy-auth.json
 
-sed -i '' -e "s/AWS_REGION/${AWS_REGION}/g" policies/backend-service-proxy-auth.json
-sed -i '' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/backend-service-proxy-auth.json
+sed -i'' -e "s/AWS_REGION/${AWS_REGION}/g" policies/backend-service-proxy-auth.json
+sed -i'' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/backend-service-proxy-auth.json
 
-sed -i '' -e "s/AWS_REGION/${AWS_REGION}/g" policies/ingress-gw-proxy-auth.json
-sed -i '' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/ingress-gw-proxy-auth.json
+sed -i'' -e "s/AWS_REGION/${AWS_REGION}/g" policies/ingress-gw-proxy-auth.json
+sed -i'' -e "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_ID}/g" policies/ingress-gw-proxy-auth.json
 
 echo "create iam policies for app mesh services"
 aws iam create-policy --policy-name frontend-svc-proxy-auth --policy-document file://policies/frontend-service-proxy-auth.json > /dev/null
@@ -174,6 +174,8 @@ helm install -f tekton-resources/tekton-catalog-backend-app-pipeline/values.yaml
     --set aws.region=${AWS_REGION} \
     --set github.secretToken=${WEBHOOK_SECRET}
 
+kubectl patch service/el-gitcommit-listener-interceptor -n apps-build --patch-file tekton-resources/service-patch.yaml
+
 echo "install Tekton resources for app deploy pipeline"
 helm install -f tekton-resources/tekton-catalog-backend-deploy-pipeline/values.yaml tekton-catalog-backend-deploy-pipeline \
     ./tekton-resources/tekton-catalog-backend-deploy-pipeline \
@@ -181,6 +183,8 @@ helm install -f tekton-resources/tekton-catalog-backend-deploy-pipeline/values.y
     --set aws.accountId=${AWS_ACCOUNT_ID} \
     --set aws.region=${AWS_REGION} \
     --set github.secretToken=${WEBHOOK_SECRET}
+
+kubectl patch service/el-app-deploy-eventlistener -n apps-build --patch-file tekton-resources/service-patch.yaml
 
 echo "create sa for tekton pipeline"
 eksctl create iamserviceaccount \
@@ -197,11 +201,11 @@ export TEKTON_APP_PIPELINE_ENDPOINT=$(kubectl -n apps-build get svc el-gitcommit
 export TEKTON_DEPLOY_PIPELINE_ENDPOINT=$(kubectl -n apps-build get svc el-app-deploy-eventlistener -o jsonpath="{.status.loadBalancer.ingress[].hostname}")
 
 echo "create webhook configs"
-sed -i '' -e "s/ENDPOINT/${TEKTON_APP_PIPELINE_ENDPOINT}/g" webhooks/aws-tekton-canary-testing-app.json
-sed -i '' -e "s/SECRET/${WEBHOOK_SECRET}/g" webhooks/aws-tekton-canary-testing-app.json
+sed -i'' -e "s/ENDPOINT/${TEKTON_APP_PIPELINE_ENDPOINT}/g" webhooks/aws-tekton-canary-testing-app.json
+sed -i'' -e "s/SECRET/${WEBHOOK_SECRET}/g" webhooks/aws-tekton-canary-testing-app.json
 
-sed -i '' -e "s/ENDPOINT/${TEKTON_DEPLOY_PIPELINE_ENDPOINT}/g" webhooks/aws-tekton-canary-testing-deploy.json
-sed -i '' -e "s/SECRET/${WEBHOOK_SECRET}/g" webhooks/aws-tekton-canary-testing-deploy.json
+sed -i'' -e "s/ENDPOINT/${TEKTON_DEPLOY_PIPELINE_ENDPOINT}/g" webhooks/aws-tekton-canary-testing-deploy.json
+sed -i'' -e "s/SECRET/${WEBHOOK_SECRET}/g" webhooks/aws-tekton-canary-testing-deploy.json
 
 echo "update webhook configs"
 gh api /repos/${GITHUB_ORG_NAME}/${GITHUB_APP_REPO_NAME}/hooks --input webhooks/aws-tekton-canary-testing-app.json > /dev/null
