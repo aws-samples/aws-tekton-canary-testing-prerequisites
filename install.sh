@@ -174,6 +174,8 @@ helm install -f tekton-resources/tekton-catalog-backend-app-pipeline/values.yaml
     --set aws.region=${AWS_REGION} \
     --set github.secretToken=${WEBHOOK_SECRET}
 
+kubectl patch service/el-gitcommit-listener-interceptor -n apps-build --patch-file tekton-resources/service-patch.yaml
+
 echo "install Tekton resources for app deploy pipeline"
 helm install -f tekton-resources/tekton-catalog-backend-deploy-pipeline/values.yaml tekton-catalog-backend-deploy-pipeline \
     ./tekton-resources/tekton-catalog-backend-deploy-pipeline \
@@ -181,6 +183,8 @@ helm install -f tekton-resources/tekton-catalog-backend-deploy-pipeline/values.y
     --set aws.accountId=${AWS_ACCOUNT_ID} \
     --set aws.region=${AWS_REGION} \
     --set github.secretToken=${WEBHOOK_SECRET}
+
+kubectl patch service/el-app-deploy-eventlistener -n apps-build --patch-file tekton-resources/service-patch.yaml
 
 echo "create sa for tekton pipeline"
 eksctl create iamserviceaccount \
